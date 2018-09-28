@@ -1,0 +1,91 @@
+#/************************************************************************************
+#***
+#***	File Author: Dell, 2018-09-28 09:36:49
+#***
+#************************************************************************************/
+#
+#! /bin/sh
+
+RATIO=75
+
+check_source_dir()
+{
+	if [ ! -d $1 ] ; then
+		echo "  Source '$1' is not directory."
+		exit -1
+	fi
+	return 0
+}
+
+check_destion_dir()
+{
+	if [ -e $1 ] ; then
+		echo "  Destion '$1' exists. "
+		exit -1
+	fi
+	mkdir $1
+	return 0
+}
+
+usage()
+{
+	echo "Usage: $0 [options] source-dir train-dir [test-dir]"
+	echo "Options:"
+	echo "  --RATIO <n>         Split Ratio for train part (default $RATIO%)"
+	exit 1
+}
+
+case $1 in
+--RATIO)
+	RATIO=$2
+	shift
+	shift
+	;;
+esac
+
+SOURCE_DIR=`basename $1`
+TRAIN_DIR=`basename $2`
+TEST_DIR=`basename $3`
+
+[ "$SOURCE_DIR" = "" -o "$TRAIN_DIR" = "" ] && usage
+
+check_source_dir $SOURCE_DIR
+check_destion_dir $TRAIN_DIR
+if [ "$TEST_DIR" != "" ] ; then
+	check_destion_dir $TEST_DIR
+fi
+
+FILE_LIST=`mktemp /tmp/shufcopy.XXXXXX`
+
+find $SOURCE_DIR -type f | shuf > $FILE_LIST
+total=`cat $FILE_LIST | wc -l`
+first=`echo "$total * $RATIO / 100" | bc`
+second=`echo "$total - $first" | bc`
+
+echo "Linking train data ..."
+head -n $first $FILE_LIST | \
+while read f ;
+do
+	d=${f/${SOURCE_DIR}/${TRAIN_DIR}}
+	dir=`dirname $d`
+	if [ ! -d $dir ] ; then
+		mkdir -p $dir
+	fi
+	ln -s `realpath $f` $d
+done
+
+echo "Linking test data ..."
+if [ "$TEST_DIR" != "" ] ; then
+	tail -n $second $FILE_LIST | \
+	while read f ;
+	do
+		d=${f/${SOURCE_DIR}/${TEST_DIR}}
+		dir=`dirname $d`
+		if [ ! -d $dir ] ; then
+			mkdir -p $dir
+		fi
+		ln -s `realpath $f` $d
+	done
+fi
+
+rm -rf $FILE_LIST
