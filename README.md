@@ -38,7 +38,8 @@ Evaluate
 
 **`$ python eval.py -h`**
 
-**`$ python eval.py`** 
+**`$ python eval.py`**
+
 `Evaluating data information:`
 `Dataset ImageFolder`
     `Number of datapoints: 918`
@@ -55,6 +56,7 @@ Evaluate
 `2018-09-28 15:31:21,553 - model.py[line:222] - INFO: Evaluating ACC:  96.30%`
 `2018-09-28 15:31:21,553 - model.py[line:223] - INFO: Evaluating finished.`
 
+
 Predict
 ----
 
@@ -65,6 +67,7 @@ Predict
 `Image class: 0, daisy, 1.00, images/daisy_5794835_d15905c7c8_n.jpg`
 
 ![](images/daisy_5794835_d15905c7c8_n.jpg)
+
 
 Requirements
 ----
