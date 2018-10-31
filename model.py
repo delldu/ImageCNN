@@ -16,15 +16,8 @@ import os
 import logging
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.optim import lr_scheduler
-from torchvision import datasets, models, transforms
-from torch.utils.data import DataLoader
-
-# from visdom import Visdom
-# import numpy as np
+import torchvision
+import numpy as np
 
 PROJECT = "flower"
 DEFAULT_MODEL = "model/" + PROJECT + ".model"
@@ -38,15 +31,44 @@ IMAGENET_STD = [0.229, 0.224, 0.225]
 
 logging.basicConfig(
     level=logging.INFO,
-    format=
-    '%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
 
-def save_class_names(classes):
-    sep = "\n"
-    f = open(DEFAULT_LABEL, 'w')
-    f.write(sep.join(classes))
-    f.close()
+class EpochLossAcc(object):
+    def __init__(self, title):
+        self.title = title
+        self.vis = None
+        self.win = None
+        try:
+            import visdom
+            self.vis = visdom.Visdom(raise_exceptions=True)
+        except:
+            logging.info("Could not connect to visdom server, please make sure:")
+            logging.info("1. install visdom:")
+            logging.info("   pip insall visdom")
+            logging.info("2. start visdom server: ")
+            logging.info("   python -m visdom.server &")
+            return
+        self.win = self.vis.line(
+            X=np.array([0]),
+            Y=np.column_stack((np.array([0]), np.array([0]))),
+            opts=dict(
+                title=self.title + ' loss & acc',
+                legend=['loss', 'acc'],
+                width=1280,
+                height=720,
+                xlabel='Epoch',
+            ))
+
+    def plot(self, epoch, loss, acc):
+        if self.vis is None or self.win is None:
+            return
+
+        self.vis.line(
+            X=np.array([epoch]),
+            Y=np.column_stack((np.array([loss]), np.array([acc]))),
+            win=self.win,
+            update='append')
 
 
 def load_class_names(model_file=DEFAULT_MODEL):
@@ -60,42 +82,48 @@ def load_class_names(model_file=DEFAULT_MODEL):
 
 
 def train_data_loader(datadir, batchsize):
-    T = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+    def save_class_names(classes):
+        sep = "\n"
+        f = open(DEFAULT_LABEL, 'w')
+        f.write(sep.join(classes))
+        f.close()
+
+    T = torchvision.transforms.Compose([
+        torchvision.transforms.RandomResizedCrop(224),
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
     ])
 
-    ds = datasets.ImageFolder(os.path.join(datadir), T)
+    ds = torchvision.datasets.ImageFolder(os.path.join(datadir), T)
     print("Training data information:")
     print(ds)
     print("Class names:", ds.classes)
     save_class_names(ds.classes)
-    return DataLoader(ds, batch_size=batchsize, shuffle=True, num_workers=2)
+    return torch.utils.data.DataLoader(ds, batch_size=batchsize, shuffle=True, num_workers=2)
 
 
 def valid_data_loader(datadir, batchsize):
-    T = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+    T = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(256),
+        torchvision.transforms.CenterCrop(224),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
     ])
 
-    ds = datasets.ImageFolder(os.path.join(datadir), T)
+    ds = torchvision.datasets.ImageFolder(os.path.join(datadir), T)
     print("Evaluating data information:")
     print(ds)
     print("Class names:", ds.classes)
-    return DataLoader(ds, batch_size=batchsize, shuffle=True, num_workers=2)
+    return torch.utils.data.DataLoader(ds, batch_size=batchsize, shuffle=True, num_workers=2)
 
 
 def image_to_tensor(image):
-    T = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+    T = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(256),
+        torchvision.transforms.CenterCrop(224),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
     ])
     t = T(image)
     t.unsqueeze_(0)
@@ -103,46 +131,50 @@ def image_to_tensor(image):
 
 
 def load_model(device, name):
+    classnames = load_class_names()
+
     if os.path.exists(name):
-        model = torch.load(name)
+        model = torchvision.models.resnet18(pretrained=False)
     else:
-        classnames = load_class_names()
-        model = models.resnet18(pretrained=True)
-        num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, len(classnames))
+        model = torchvision.models.resnet18(pretrained=True)
+
+    in_features = model.fc.in_features
+    model.fc = torch.nn.Linear(in_features, len(classnames))
+
+    if os.path.exists(name):
+        model.load_state_dict(torch.load(name))
+
     model = model.to(device)
 
     return model
 
 
-def save_model(model, epoch):
-    name = "logs/{:s}.model-{:d}".format(PROJECT, epoch)
-    logging.info('Saving model to ' + name + '...')
-    torch.save(model, name)
-
-
-def save_steps(epochs):
-    n = int((epochs + 1)/10)
-    if n < 10:
-        n = 10
-    n = 10*int((n + 9)/10)    # round to 10x times
-    return n
-
-
 def train_model(device, model, dataloader, epochs):
+    def save_model(model, epoch):
+        name = "logs/{:s}.model-{:d}".format(PROJECT, epoch)
+        logging.info('Saving model to ' + name + '...')
+        torch.save(model.state_dict(), name)
+
+    def save_steps(epochs):
+        n = int((epochs + 1)/10)
+        if n < 10:
+            n = 10
+        n = 10 * int((n + 9) / 10)  # round to 10x times
+        return n
+
     logging.info("Start training ...")
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss()
 
     # Observe that all parameters are being optimized
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 10 epochs
-    dec_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    dec_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     model.train()  # Set model to training mode
 
-    # viz = Visdom()
+    viz = EpochLossAcc("Training")
     save_interval = save_steps(epochs)
     for epoch in range(epochs):
         dec_lr_scheduler.step()
@@ -170,28 +202,11 @@ def train_model(device, model, dataloader, epochs):
             # statistics
             trainning_loss += loss.item()
 
-        trainning_acc = 100.0 * correct/total
+            trainning_acc = 100.0 * correct/total
         logging.info('Training epoch: %d/%d, loss: %12.4f, acc: %10.2f' %
-                     (epoch + 1, epochs, trainning_loss, trainning_acc))
+                         (epoch + 1, epochs, trainning_loss, trainning_acc))
 
-        # if epoch == 0:
-        #     twin = viz.line(X = np.array([epoch]),
-        #         Y = np.column_stack((np.array([trainning_loss]),
-        #             np.array([trainning_acc]))),
-        #         opts = dict(
-        #             title='Trainning loss & acc',
-        #             legend=['loss', 'acc'],
-        #             width = 1280,
-        #             height = 720,
-        #             xlabel = 'Epoch',
-        #             )
-        #         )
-        # else:
-        #     viz.line(X = np.array([epoch]),
-        #         Y = np.column_stack((np.array([trainning_loss]),
-        #             np.array([trainning_acc]))),
-        #         win = twin,
-        #         update = 'append')
+        viz.plot(epoch, trainning_loss, trainning_acc)
 
         if (epoch + 1) % save_interval == 0 or epoch == epochs - 1:
             save_model(model, epoch + 1)
@@ -234,6 +249,6 @@ def model_predict(device, model, image):
         outputs = model(t)
         _, label = torch.max(outputs.data, 1)  # by 0 -- cols, 1 -- rows
         i = label[0].item()
-        outputs = F.softmax(outputs, dim=1)
+        outputs = torch.nn.functional.softmax(outputs, dim=1)
         prob = outputs[0][i].item()
     return i, prob
