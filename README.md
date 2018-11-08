@@ -64,21 +64,21 @@ Evaluate
 
 **`$ python eval.py`**
 
-`Evaluating data information:`
-`Dataset ImageFolder`
-​    `Number of datapoints: 918`
-​    `Root Location: data/test`
-​    `Transforms (if any): Compose(`
-​                             `Resize(size=256, interpolation=PIL.Image.BILINEAR)`
-​                             `CenterCrop(size=(224, 224))`
-​                             `ToTensor()`
-​                             `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`
-​                         `)`
-​    `Target Transforms (if any): None`
-`Class names: ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips']`
-`2018-09-28 15:31:19,234 - model.py[line:203] - INFO: Start evaluating ...`
-`2018-09-28 15:31:21,553 - model.py[line:222] - INFO: Evaluating ACC:  99.24%`
-`2018-09-28 15:31:21,553 - model.py[line:223] - INFO: Evaluating finished.`
+`Evaluating data information:`  
+`Dataset ImageFolder`  
+​    `Number of datapoints: 918`  
+​    `Root Location: data/test`  
+​    `Transforms (if any): Compose(`  
+​                             `Resize(size=256, interpolation=PIL.Image.BILINEAR)`  
+​                             `CenterCrop(size=(224, 224))`  
+​                             `ToTensor()`  
+​                             `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`  
+​                         `)`  
+​    `Target Transforms (if any): None`  
+`Class names: ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips']`  
+`2018-09-28 15:31:19,234 - model.py[line:203] - INFO: Start evaluating ...`  
+`2018-09-28 15:31:21,553 - model.py[line:222] - INFO: Evaluating ACC:  99.24%`  
+`2018-09-28 15:31:21,553 - model.py[line:223] - INFO: Evaluating finished.`  
 
 
 
