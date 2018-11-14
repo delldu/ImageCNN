@@ -9,7 +9,7 @@ Dataset
 
 
 ```
-wget http://download.tensorflow.org/example_images/flower_photos.tgz
+wget http://download.tensorflow.org/example_images/flower_photos.tgz  
 ```
 **Examples**
 
@@ -18,8 +18,8 @@ wget http://download.tensorflow.org/example_images/flower_photos.tgz
 | daisy                                          | dandelion                                              |roses                                           |sunflowers                                                |tulips                                           |
 
 2. **Split files into two folders: train and test with tools/shuflink**
-`cd data`
-`../tools/shuflink flower_photos train test`
+`cd data`  
+`../tools/shuflink flower_photos train test`  
 `cd ..`
 
 
@@ -85,11 +85,11 @@ Evaluate
 Predict
 ----
 
-**`python predict.py -h`**
+**`python predict.py -h`**  
 
-`python predict.py images/daisy_5794835_d15905c7c8_n.jpg` 
+`python predict.py images/daisy_5794835_d15905c7c8_n.jpg`  
 
-`Image class: 0, daisy, 1.00, images/daisy_5794835_d15905c7c8_n.jpg`
+`Image class: 0, daisy, 1.00, images/daisy_5794835_d15905c7c8_n.jpg`  
 
 ![](images/daisy_5794835_d15905c7c8_n.jpg)
 
