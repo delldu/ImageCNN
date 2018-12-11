@@ -172,6 +172,7 @@ def load_model(device, name):
     return load_resnet18_model(device, name)
     #return load_squeezenet_model(device, name)
 
+
 def train_model(device, model, dataloader, epochs):
     def save_model(model, epoch):
         name = "logs/{:s}.model-{:d}".format(PROJECT, epoch)
