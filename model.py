@@ -130,7 +130,27 @@ def image_to_tensor(image):
     return t
 
 
-def load_model(device, name):
+def load_squeezenet_model(device, name):
+    classnames = load_class_names()
+
+    if os.path.exists(name):
+        model = torchvision.models.squeezenet1_1(pretrained=False)
+    else:
+        model = torchvision.models.squeezenet1_1(pretrained=True)
+
+    c = model.classifier[1]
+    c.out_channels = len(classnames)
+    model.classifier[1] = c
+
+    if os.path.exists(name):
+        model.load_state_dict(torch.load(name))
+
+    model = model.to(device)
+
+    return model
+
+
+def load_resnet18_model(device, name):
     classnames = load_class_names()
 
     if os.path.exists(name):
@@ -148,6 +168,9 @@ def load_model(device, name):
 
     return model
 
+def load_model(device, name):
+    return load_resnet18_model(device, name)
+    #return load_squeezenet_model(device, name)
 
 def train_model(device, model, dataloader, epochs):
     def save_model(model, epoch):
