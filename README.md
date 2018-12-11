@@ -9,7 +9,7 @@ Dataset
 
 
 ```
-wget http://download.tensorflow.org/example_images/flower_photos.tgz
+wget http://download.tensorflow.org/example_images/flower_photos.tgz  
 ```
 **Examples**
 
@@ -18,8 +18,8 @@ wget http://download.tensorflow.org/example_images/flower_photos.tgz
 | daisy                                          | dandelion                                              |roses                                           |sunflowers                                                |tulips                                           |
 
 2. **Split files into two folders: train and test with tools/shuflink**
-`cd data`
-`../tools/shuflink flower_photos train test`
+`cd data`  
+`../tools/shuflink flower_photos train test`  
 `cd ..`
 
 
@@ -64,32 +64,32 @@ Evaluate
 
 **`$ python eval.py`**
 
-`Evaluating data information:`
-`Dataset ImageFolder`
-​    `Number of datapoints: 918`
-​    `Root Location: data/test`
-​    `Transforms (if any): Compose(`
-​                             `Resize(size=256, interpolation=PIL.Image.BILINEAR)`
-​                             `CenterCrop(size=(224, 224))`
-​                             `ToTensor()`
-​                             `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`
-​                         `)`
-​    `Target Transforms (if any): None`
-`Class names: ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips']`
-`2018-09-28 15:31:19,234 - model.py[line:203] - INFO: Start evaluating ...`
-`2018-09-28 15:31:21,553 - model.py[line:222] - INFO: Evaluating ACC:  99.24%`
-`2018-09-28 15:31:21,553 - model.py[line:223] - INFO: Evaluating finished.`
+`Evaluating data information:`  
+`Dataset ImageFolder`  
+​    `Number of datapoints: 918`  
+​    `Root Location: data/test`  
+​    `Transforms (if any): Compose(`  
+​                             `Resize(size=256, interpolation=PIL.Image.BILINEAR)`  
+​                             `CenterCrop(size=(224, 224))`  
+​                             `ToTensor()`  
+​                             `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`  
+​                         `)`  
+​    `Target Transforms (if any): None`  
+`Class names: ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips']`  
+`2018-09-28 15:31:19,234 - model.py[line:203] - INFO: Start evaluating ...`  
+`2018-09-28 15:31:21,553 - model.py[line:222] - INFO: Evaluating ACC:  99.24%`  
+`2018-09-28 15:31:21,553 - model.py[line:223] - INFO: Evaluating finished.`  
 
 
 
 Predict
 ----
 
-**`python predict.py -h`**
+**`python predict.py -h`**  
 
-`python predict.py images/daisy_5794835_d15905c7c8_n.jpg` 
+`python predict.py images/daisy_5794835_d15905c7c8_n.jpg`  
 
-`Image class: 0, daisy, 1.00, images/daisy_5794835_d15905c7c8_n.jpg`
+`Image class: 0, daisy, 1.00, images/daisy_5794835_d15905c7c8_n.jpg`  
 
 ![](images/daisy_5794835_d15905c7c8_n.jpg)
 
